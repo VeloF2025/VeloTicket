@@ -5,7 +5,7 @@
 [![Discord Chat](https://img.shields.io/discord/784109818247774249.svg?logo=discord)](https://discord.gg/Dp2tTZRYHg)
 [![Forum](https://img.shields.io/badge/forum-online-blue.svg?logo=discourse)](https://whaticket.online/)
 
-# WhaTicket!
+# VeloTicket!
 
 **NOTE**: The new version of whatsapp-web.js required Node 14. Upgrade your installations to keep using it.
 
@@ -394,7 +394,7 @@ sudo certbot --nginx
 
 ### Using docker and docker-compose
 
-To run WhaTicket using docker you must perform the following steps:
+To run VeloTicket using docker you must perform the following steps:
 
 ```bash
 cp .env.example .env
@@ -476,7 +476,7 @@ Password: admin
 
 ## Upgrading
 
-WhaTicket is a working in progress and we are adding new features frequently. To update your old installation and get all the new features, you can use a bash script like this:
+VeloTicket is a working in progress and we are adding new features frequently. To update your old installation and get all the new features, you can use a bash script like this:
 
 **Note**: Always check the .env.example and adjust your .env file before upgrading, since some new variable may be added.
 
@@ -486,7 +486,7 @@ nano updateWhaticket
 
 ```bash
 #!/bin/bash
-echo "Updating Whaticket, please wait."
+echo "Updating VeloTicket, please wait."
 
 cd ~
 cd whaticket
@@ -503,7 +503,7 @@ rm -rf build
 npm run build
 pm2 restart all
 
-echo "Update finished. Enjoy!"
+echo "VeloTicket update finished. Enjoy!"
 ```
 
 Make it executable and run it:
