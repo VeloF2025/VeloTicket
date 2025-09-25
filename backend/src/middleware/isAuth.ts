@@ -26,7 +26,7 @@ const isAuth = (req: Request, res: Response, next: NextFunction): void => {
     const { id, profile } = decoded as TokenPayload;
 
     req.user = {
-      id,
+      id: String(id),
       profile
     };
   } catch (err) {

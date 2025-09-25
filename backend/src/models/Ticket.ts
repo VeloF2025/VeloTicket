@@ -34,8 +34,8 @@ class Ticket extends Model<Ticket> {
   @Column
   lastMessage: string;
 
-  @Column
-  drNumber: string;
+  // @Column
+  // drNumber: string; // Temporarily commented out - column missing from database
 
   @Default(false)
   @Column

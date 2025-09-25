@@ -1,0 +1,23 @@
+FROM node:16.20.2-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Set environment variables
+ENV HOST=0.0.0.0
+ENV PORT=3030
+ENV BROWSER=none
+
+# Expose port
+EXPOSE 3030
+
+# Start the development server
+CMD ["npm", "start"]
