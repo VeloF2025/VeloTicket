@@ -5,6 +5,7 @@ import Whatsapp from "../models/Whatsapp";
 import AppError from "../errors/AppError";
 import { logger } from "../utils/logger";
 import { handleMessage } from "../services/WbotServices/wbotMessageListener";
+import { messageCheckService } from "../services/WbotServices/MessageCheckService";
 
 interface Session extends Client {
   id?: number;
@@ -125,6 +126,18 @@ export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
         wbot.sendPresenceAvailable();
         await syncUnreadMessages(wbot);
 
+        // Start regular message checking for this session
+        try {
+          await messageCheckService.startMessageChecking(whatsapp.id, {
+            interval: 5 * 60 * 1000, // 5 minutes
+            limit: 50,
+            enabled: true
+          });
+          logger.info(`Started regular message checking for WhatsApp ID: ${whatsapp.id}`);
+        } catch (error) {
+          logger.error(`Failed to start message checking for WhatsApp ID: ${whatsapp.id}:`, error);
+        }
+
         resolve(wbot);
       });
     } catch (err) {
@@ -149,6 +162,10 @@ export const removeWbot = (whatsappId: number): void => {
       sessions[sessionIndex].destroy();
       sessions.splice(sessionIndex, 1);
     }
+
+    // Stop message checking for this session
+    messageCheckService.stopMessageChecking(whatsappId);
+    logger.info(`Stopped message checking for WhatsApp ID: ${whatsappId}`);
   } catch (err) {
     logger.error(err);
   }

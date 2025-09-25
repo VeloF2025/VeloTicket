@@ -8,15 +8,52 @@ const FindOrCreateTicketService = async (
   contact: Contact,
   whatsappId: number,
   unreadMessages: number,
-  groupContact?: Contact
+  groupContact?: Contact,
+  drNumber?: string
 ): Promise<Ticket> => {
-  let ticket = await Ticket.findOne({
+  let ticket: Ticket | null = null;
+
+  // If DR number is provided, look for existing ticket with the same DR number
+  if (drNumber) {
+    ticket = await Ticket.findOne({
+      where: {
+        status: {
+          [Op.or]: ["open", "pending"]
+        },
+        drNumber: drNumber,
+        whatsappId: whatsappId
+      }
+    });
+
+    if (ticket) {
+      await ticket.update({ unreadMessages });
+      ticket = await ShowTicketService(ticket.id);
+      return ticket;
+    }
+
+    // If no existing ticket with DR number, create a new one
+    ticket = await Ticket.create({
+      contactId: groupContact ? groupContact.id : contact.id,
+      status: "pending",
+      isGroup: !!groupContact,
+      unreadMessages,
+      whatsappId,
+      drNumber: drNumber
+    });
+
+    ticket = await ShowTicketService(ticket.id);
+    return ticket;
+  }
+
+  // If no DR number, use the original logic (group by contact)
+  ticket = await Ticket.findOne({
     where: {
       status: {
         [Op.or]: ["open", "pending"]
       },
       contactId: groupContact ? groupContact.id : contact.id,
-      whatsappId: whatsappId
+      whatsappId: whatsappId,
+      drNumber: null // Only match tickets without DR numbers
     }
   });
 
@@ -28,7 +65,8 @@ const FindOrCreateTicketService = async (
     ticket = await Ticket.findOne({
       where: {
         contactId: groupContact.id,
-        whatsappId: whatsappId
+        whatsappId: whatsappId,
+        drNumber: null
       },
       order: [["updatedAt", "DESC"]]
     });
@@ -49,7 +87,8 @@ const FindOrCreateTicketService = async (
           [Op.between]: [+subHours(new Date(), 2), +new Date()]
         },
         contactId: contact.id,
-        whatsappId: whatsappId
+        whatsappId: whatsappId,
+        drNumber: null
       },
       order: [["updatedAt", "DESC"]]
     });
@@ -69,7 +108,8 @@ const FindOrCreateTicketService = async (
       status: "pending",
       isGroup: !!groupContact,
       unreadMessages,
-      whatsappId
+      whatsappId,
+      drNumber: null
     });
   }
 

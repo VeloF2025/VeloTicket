@@ -17,6 +17,13 @@ interface Request {
   messageData: MessageData;
 }
 
+// Helper function to extract DR number from text
+const extractDrNumberFromText = (text: string): string | null => {
+  if (!text) return null;
+  const match = text.match(/DR\d{7}/);
+  return match && /^DR\d{7}$/.test(match[0]) ? match[0] : null;
+};
+
 const CreateMessageService = async ({
   messageData
 }: Request): Promise<Message> => {
@@ -47,6 +54,15 @@ const CreateMessageService = async ({
 
   if (!message) {
     throw new Error("ERR_CREATING_MESSAGE");
+  }
+
+  // Extract DR number from message body and update ticket if found
+  const drNumber = extractDrNumberFromText(messageData.body);
+  if (drNumber && message.ticket) {
+    // Update the ticket with the DR number if it's not already set
+    if (!message.ticket.drNumber) {
+      await message.ticket.update({ drNumber });
+    }
   }
 
   const io = getIO();

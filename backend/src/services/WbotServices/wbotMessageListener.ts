@@ -26,6 +26,32 @@ import CreateContactService from "../ContactServices/CreateContactService";
 import GetContactService from "../ContactServices/GetContactService";
 import formatBody from "../../helpers/Mustache";
 
+// Helper function to validate DR number format
+const isValidDrNumber = (text: string): boolean => {
+  return /^DR\d{7}$/.test(text);
+};
+
+// Helper function to extract DR number from various sources
+const extractDrNumberFromMessage = (msg: WbotMessage, contact: Contact): string | null => {
+  // Check contact name for DR number
+  if (contact.name) {
+    const nameMatch = contact.name.match(/DR\d{7}/);
+    if (nameMatch && isValidDrNumber(nameMatch[0])) {
+      return nameMatch[0];
+    }
+  }
+
+  // Check message body for DR number
+  if (msg.body) {
+    const bodyMatch = msg.body.match(/DR\d{7}/);
+    if (bodyMatch && isValidDrNumber(bodyMatch[0])) {
+      return bodyMatch[0];
+    }
+  }
+
+  return null;
+};
+
 interface Session extends Client {
   id?: number;
 }
@@ -298,12 +324,29 @@ const handleMessage = async (
     )
       return;
 
+    // Check for DR number before creating ticket
+    const drNumber = extractDrNumberFromMessage(msg, contact);
+
+    if (!drNumber && !msg.fromMe) {
+      // For incoming messages, if no DR number is found, log and skip processing
+      logger.info(`Message rejected: No valid DR number found in message from ${contact.number}`);
+      return;
+    }
+
     const ticket = await FindOrCreateTicketService(
       contact,
       wbot.id!,
       unreadMessages,
-      groupContact
+      groupContact,
+      drNumber || undefined
     );
+
+    // Log DR number if found
+    if (drNumber) {
+      logger.info(`Processing message for DR number: ${drNumber} in ticket ${ticket.id}`);
+    } else if (!msg.fromMe) {
+      logger.info(`Processing message without DR number in ticket ${ticket.id}`);
+    }
 
     if (msg.hasMedia) {
       await verifyMediaMessage(msg, ticket, contact);

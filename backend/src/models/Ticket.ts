@@ -34,6 +34,9 @@ class Ticket extends Model<Ticket> {
   @Column
   lastMessage: string;
 
+  @Column
+  drNumber: string;
+
   @Default(false)
   @Column
   isGroup: boolean;
